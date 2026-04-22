@@ -8,6 +8,13 @@ import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
 
+
+class CallableDash(dash.Dash):
+    """Dash app that also acts as a WSGI callable for Gunicorn."""
+
+    def __call__(self, environ, start_response):
+        return self.server(environ, start_response)
+
 # ==========================================
 # 1. Data Processing & Performance Setup
 # ==========================================
@@ -71,7 +78,7 @@ df = df.reset_index(drop=True)
 df['_row_id'] = np.arange(len(df))
 
 # Ensure academic_year is treated as a categorical/string variable
-df['academic_year'] = df['academic_year'].astype(str)
+df = df.assign(academic_year=df['academic_year'].astype(str))
 
 NUMERIC_FEATURES = [
     col for col in df.select_dtypes(include='number').columns
@@ -234,7 +241,8 @@ def find_available_port(start_port=8050, max_tries=50):
 # ==========================================
 
 # Initialize Dash app with a clean, professional Bootstrap theme
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
+app = CallableDash(__name__, external_stylesheets=[dbc.themes.FLATLY])
+server = app.server
 app.title = "Student Burnout Analysis"
 
 app.layout = html.Div([
@@ -612,7 +620,8 @@ def update_linked_charts(selectedData, heatmap_y_feature, dark_mode):
         index='heatmap_y_bin',
         columns='academic_year',
         values='burnout_score',
-        aggfunc='mean'
+        aggfunc='mean',
+        observed=False
     )
 
     if not heatmap_df.empty:
