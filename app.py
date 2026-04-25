@@ -19,8 +19,6 @@ class CallableDash(dash.Dash):
 # 1. Data Processing & Performance Setup
 # ==========================================
 
-# Loading the massive dataset (use your actual file path if different)
-# Based on your workspace, the file might be named 'student_mental_health_burnout_1M.csv'
 file_path = "student_mental_health_burnout_5K.csv"
 try:
     df_full = pd.read_csv(file_path)
@@ -78,17 +76,14 @@ df = df.reset_index(drop=True)
 df['_row_id'] = np.arange(len(df))
 
 # Ensure academic_year is treated as a categorical/string variable
-df = df.assign(academic_year=df['academic_year'].astype(str))
+df['academic_year'] = df['academic_year'].astype(str)
 
 NUMERIC_FEATURES = [
     col for col in df.select_dtypes(include='number').columns
     if col not in {'burnout_score', '_row_id'}
 ]
-DEFAULT_MASTER_X = 'age' if 'age' in NUMERIC_FEATURES else NUMERIC_FEATURES[0]
+DEFAULT_MASTER_X = 'stress_level' if 'stress_level' in NUMERIC_FEATURES else NUMERIC_FEATURES[0]
 DEFAULT_HEATMAP_Y = 'stress_level' if 'stress_level' in NUMERIC_FEATURES else NUMERIC_FEATURES[0]
-
-if 'stress_level' in NUMERIC_FEATURES:
-    DEFAULT_MASTER_X = 'stress_level'
 
 
 def format_feature_name(feature_name):
@@ -451,7 +446,7 @@ def update_linked_charts(selectedData, heatmap_y_feature, dark_mode):
     filtered_df = get_filtered_df(selectedData)
 
     # --------------------------------------------------------- 
-    # Chart 2: Overlaid Sleep Histogram (Linked, 1-hour bins, x=sleep_hours, y=count)
+    # Chart 2: Sleep Histogram (Linked, 1-hour bins, x=sleep_hours, y=count)
     # ---------------------------------------------------------
     min_sleep = int(np.floor(min(df['sleep_hours'].min(), filtered_df['sleep_hours'].min())))
     max_sleep = int(np.ceil(max(df['sleep_hours'].max(), filtered_df['sleep_hours'].max())))
